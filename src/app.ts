@@ -10,7 +10,7 @@ import config from './config/config'
 import { logger, morgan } from './modules/logger'
 import { jwtStrategy } from './modules/auth'
 import { authLimiter } from './modules/utils'
-import { User } from './modules/user'
+import {adminRouter} from './modules/admin'
 import { ApiError, errorConverter, errorHandler } from './modules/errors'
 import routes from './routes/v1'
 
@@ -40,6 +40,7 @@ const startApp = () => {
     // enable cors
     app.use(cors())
     app.options('*', cors())
+    app.use("/admin", adminRouter)
 
     // parse json request body
     app.use(express.json())
@@ -67,7 +68,7 @@ const startApp = () => {
     app.use('/v1', routes)
 
     // send back a 404 error for any unknown api request
-    app.use(admin.options.rootPath, adminRouter)
+  
 
     app.use((_req, _res, next) => {
         next(new ApiError(httpStatus.NOT_FOUND, 'Not found'))

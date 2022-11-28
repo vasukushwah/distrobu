@@ -3,7 +3,10 @@ import AdminJSExpress from '@adminjs/express'
 import * as AdminJSMongoose from '@adminjs/mongoose'
 import config from '../../config/config'
 import { User } from '../user'
-import session from 'express'
+import { authService } from '../auth'
+import { logger } from '../logger'
+
+// import session from 'express'
 
 AdminJS.registerAdapter({
     Resource: AdminJSMongoose.Resource,
@@ -11,20 +14,74 @@ AdminJS.registerAdapter({
 })
 
 const admin = new AdminJS({
-    resources: [User],
+    branding: {
+        companyName: "DistroBu",
+        logo: "/images/shop-icon.png",
+        withMadeWithLove: false,
+    },
+    resources: [{
+        resource: User,
+        options: {
+            parent: {
+                name: "User Content",
+                icon: "User",
+            },
+            properties: {
+                _id: {
+                    isVisible: { list: false, filter: true, show: true, edit: false },
+                },
+
+            },
+            actions: {
+                new: {
+                    icon: 'Add',
+                    handler: (request: any, context: any) => {
+                        const { record, currentAdmin } = context
+                        console.log(request)
+                        // console.log(response)
+
+                        return {
+                            record: record.toJSON(currentAdmin),
+                            msg: 'Hello world',
+                        }
+                    },
+                }
+            }
+        },
+    }],
+    locale: {
+        language: 'en',
+        translations: {
+            labels: {
+                loginWelcome: "Admin Panel Login",
+            },
+            messages: {
+                loginWelcome:
+                    "Please enter your credentials to log in and manage",
+            },
+        },
+    },
 })
 
 export const adminRouter = AdminJSExpress.buildAuthenticatedRouter(
     admin,
     {
-        authenticate(email, password) {
-            console.log(email)
+        authenticate: async (email, password) => {
+            try {
+                const user = await authService.loginUserWithEmailAndPassword(email, password)
+                if (user.role !== 'admin')
+                    return false
+                return user
+            } catch (error) {
+                logger.error(error)
+                return false
+            }
         },
         cookiePassword: config.cookie.password,
         cookieName: config.cookie.name,
         maxRetries: 5,
     },
-    session
+
 )
 
 // Admin js
