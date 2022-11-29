@@ -1,4 +1,6 @@
-import { CustomHelpers } from 'joi';
+import Joi, { CustomHelpers } from 'joi';
+import { pick } from '../utils';
+import { Request } from 'express';
 
 export const objectId = (value: string, helpers: CustomHelpers) => {
   if (!value.match(/^[0-9a-fA-F]{24}$/)) {
@@ -6,6 +8,22 @@ export const objectId = (value: string, helpers: CustomHelpers) => {
   }
   return value;
 };
+
+
+export const userBody = (schema: Record<string, any>, req: Request) => {
+  const validSchema = pick(schema, ['params', 'query', 'body']);
+  const object = pick(req, Object.keys(validSchema));
+  const { error } = Joi.compile(validSchema)
+    .prefs({ errors: { label: 'key' } })
+    .validate(object);
+
+  if (error) {
+    const errorMessage = error.details.map((details) => details.message).join(', ');
+    return errorMessage
+  }
+
+  return "success"
+}
 
 export const password = (value: string, helpers: CustomHelpers) => {
   if (value.length < 8) {

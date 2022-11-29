@@ -2,9 +2,10 @@ import AdminJS from 'adminjs'
 import AdminJSExpress from '@adminjs/express'
 import * as AdminJSMongoose from '@adminjs/mongoose'
 import config from '../../config/config'
-import { User } from '../user'
+import { User, userService } from '../user'
 import { authService } from '../auth'
 import { logger } from '../logger'
+import { userBody } from '../validate/custom.validation'
 
 // import session from 'express'
 
@@ -30,24 +31,57 @@ const admin = new AdminJS({
                 _id: {
                     isVisible: { list: false, filter: true, show: true, edit: false },
                 },
-
             },
             actions: {
                 new: {
                     icon: 'Add',
-                    handler: (request: any, context: any) => {
-                        const { record, currentAdmin } = context
-                        console.log(request)
-                        // console.log(response)
+                    handler: async (request: any, _response: any, context: any) => {
 
-                        return {
-                            record: record.toJSON(currentAdmin),
-                            msg: 'Hello world',
+                        const { resource, h, currentAdmin } = context
+
+
+                        if (request.method === 'post') {
+                            //eslint-disable-next-line no-param-reassign
+                            const valid = userBody(request.payload ?? {}, request)
+                            let record
+                            if (valid === "success") {
+                                record = await userService.createUser(request.payload)
+                                context.record = record
+                                return {
+                                    redirectUrl: h.resourceUrl({ resourceId: resource._decorated?.id() || resource.id() }),
+                                    notice: {
+                                        message: 'successfullyCreated',
+                                        type: 'success',
+                                    },
+                                    record: record.toJSON(currentAdmin),
+                                }
+
+                            }
+                            throw new Error(valid)
+                            // TODO: add wrong implementation error
                         }
+                        throw new Error('new action can be invoked only via `post` http method')
+
+
                     },
+                },
+                delete: {
+                    isVisible: true,
+                    actionType: 'record',
+                    icon: 'TrashCan',
+                    guard: 'confirmDelete',
+                    component: false,
+                    variant: 'danger',
+                },
+                edit: {
+                    isVisible: true,
+                    actionType: 'record',
+                    icon: 'Edit',
+                    showInDrawer: true,
                 }
-            }
-        },
+
+            },
+        }
     }],
     locale: {
         language: 'en',
