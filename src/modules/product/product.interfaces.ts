@@ -1,22 +1,27 @@
-import { Model } from "mongoose";
+import { Document, Model, Types } from "mongoose";
 import { QueryResult } from "../paginate/paginate";
 
 export interface IProduct {
-    productCode: string;
-    title: string;
+
+    name: string;
     imagePath: string;
     model: string;
     price: Number;
-    category: any;
+    category: Types.ObjectId;
     quntity: Number;
     description: string;
     available: boolean;
+
 }
 
-export interface IProductModel extends Model<IProduct> {
+
+export interface IProductDoc extends IProduct, Document { }
+
+export interface IProductModel extends Model<IProductDoc> {
     paginate(filter: Record<string, any>, options: Record<string, any>): Promise<QueryResult>;
 }
 
-export interface IProducts {
-    products: Array<IProduct>;
-}
+export type UpdateProductBody = Partial<IProduct>;
+
+export type NewCreatedProduct = Required<IProduct>
+

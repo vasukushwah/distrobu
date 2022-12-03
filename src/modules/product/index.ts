@@ -1,4 +1,6 @@
 import * as productInterfaces from './product.interfaces';
-// import Product from './product.model';
+import * as productService from './product.service'
+import * as productController from './product.controller'
 
-export { productInterfaces }
+
+export { productInterfaces, productService, productController }

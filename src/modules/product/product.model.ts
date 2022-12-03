@@ -3,15 +3,10 @@ import mongoose from 'mongoose'
 import paginate from '../paginate/paginate';
 import { toJSON } from '../toJSON';
 
-import { IProduct, IProductModel } from './product.interfaces'
+import { IProductDoc, IProductModel } from './product.interfaces'
 
-const productSchema = new mongoose.Schema<IProduct, IProductModel>({
-    productCode: {
-        type: String,
-        required: true,
-        unique: true,
-    },
-    title: {
+const productSchema = new mongoose.Schema<IProductDoc, IProductModel>({
+    name: {
         type: String,
         required: true,
     },
@@ -49,7 +44,7 @@ const productSchema = new mongoose.Schema<IProduct, IProductModel>({
 productSchema.plugin(toJSON);
 productSchema.plugin(paginate);
 
-const Product = mongoose.model<IProduct, IProductModel>('Product', productSchema);
+const Product = mongoose.model<IProductDoc, IProductModel>('Product', productSchema);
 
 export default Product;
 
